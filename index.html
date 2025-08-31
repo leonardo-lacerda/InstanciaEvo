@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolution API Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Página de Login -->
+    <div id="loginPage" class="page active">
+        <div class="login-container">
+            <div class="login-form">
+                <h1>Evolution API Manager</h1>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label for="username">Usuário</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Senha</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Página de Administração -->
+    <div id="adminPage" class="page">
+        <header class="admin-header">
+            <h1>Gerenciar Instâncias</h1>
+            <button id="logoutBtn" class="logout-btn">Sair</button>
+        </header>
+        
+        <div class="admin-container">
+            <div class="create-instance-section">
+                <h2>Criar Nova Instância</h2>
+                <form id="createInstanceForm">
+                    <div class="input-group">
+                        <label for="instanceName">Nome da Instância</label>
+                        <input type="text" id="instanceName" name="instanceName" required>
+                    </div>
+                    <button type="submit">Criar Instância</button>
+                </form>
+            </div>
+
+            <div class="instances-section">
+                <h2>Instâncias Criadas</h2>
+                <div id="instancesList" class="instances-list">
+                    <!-- Lista de instâncias será preenchida pelo JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Página da Instância (Para o Cliente) -->
+    <div id="instancePage" class="page">
+        <div class="instance-container">
+            <div class="instance-header">
+                <h1>Conectar WhatsApp</h1>
+                <p>Escaneie o QR Code abaixo com seu WhatsApp</p>
+            </div>
+
+            <div class="qr-section">
+                <div id="qrContainer" class="qr-container">
+                    <div class="qr-placeholder">QR Code será exibido aqui</div>
+                </div>
+                <button id="refreshQR" class="refresh-btn">Atualizar QR Code</button>
+            </div>
+
+            <div class="url-section">
+                <h3>URL do Webhook (N8N)</h3>
+                <div class="input-group">
+                    <input type="text" id="webhookUrl" placeholder="URL será preenchida automaticamente">
+                    <div class="warning">⚠️ Não altere este campo - será preenchido automaticamente</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Configuração do Negócio</h2>
+                <form id="businessForm" class="business-form">
+                    <!-- Informações Básicas -->
+                    <div class="form-group">
+                        <h3>🔹 Informações básicas do negócio</h3>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="businessName">Nome do negócio *</label>
+                                <input type="text" id="businessName" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="businessAddress">Endereço físico</label>
+                                <input type="text" id="businessAddress">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="businessCity">Cidade/Estado *</label>
+                                <input type="text" id="businessCity" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="businessPhone">Telefone principal *</label>
+                                <input type="tel" id="businessPhone" required>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="businessEmail">E-mail para contato</label>
+                                <input type="email" id="businessEmail">
+                            </div>
+                            <div class="input-group">
+                                <label for="businessWebsite">Website ou redes sociais</label>
+                                <input type="text" id="businessWebsite">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horário de Funcionamento -->
+                    <div class="form-group">
+                        <h3>🔹 Horário de funcionamento</h3>
+                        <div class="schedule-container">
+                            <div class="schedule-day">
+                                <label>Segunda-feira</label>
+                                <input type="time" id="mon_open"> às <input type="time" id="mon_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="mon_break_start"> às <input type="time" id="mon_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Terça-feira</label>
+                                <input type="time" id="tue_open"> às <input type="time" id="tue_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="tue_break_start"> às <input type="time" id="tue_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Quarta-feira</label>
+                                <input type="time" id="wed_open"> às <input type="time" id="wed_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="wed_break_start"> às <input type="time" id="wed_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Quinta-feira</label>
+                                <input type="time" id="thu_open"> às <input type="time" id="thu_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="thu_break_start"> às <input type="time" id="thu_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Sexta-feira</label>
+                                <input type="time" id="fri_open"> às <input type="time" id="fri_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="fri_break_start"> às <input type="time" id="fri_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Sábado</label>
+                                <input type="time" id="sat_open"> às <input type="time" id="sat_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="sat_break_start"> às <input type="time" id="sat_break_end">
+                            </div>
+                            <div class="schedule-day">
+                                <label>Domingo</label>
+                                <input type="time" id="sun_open"> às <input type="time" id="sun_close">
+                                <label>Pausa:</label>
+                                <input type="time" id="sun_break_start"> às <input type="time" id="sun_break_end">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Serviços/Produtos -->
+                    <div class="form-group">
+                        <h3>🔹 Serviços ou produtos</h3>
+                        <div id="servicesContainer">
+                            <div class="service-item">
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Nome do serviço/produto *</label>
+                                        <input type="text" name="serviceName" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Preço (R$) *</label>
+                                        <input type="number" step="0.01" name="servicePrice" required>
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div class="input-group">
+                                        <label>Tempo estimado (minutos)</label>
+                                        <input type="number" name="serviceDuration">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Observações/Regras</label>
+                                        <input type="text" name="serviceNotes">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" id="addService" class="add-btn">+ Adicionar Serviço</button>
+                    </div>
+
+                    <!-- Agendamentos -->
+                    <div class="form-group">
+                        <h3>🔹 Agendamentos</h3>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="appointmentType">Tipo de agendamento</label>
+                                <select id="appointmentType">
+                                    <option value="online">Online</option>
+                                    <option value="presencial">Apenas presencial</option>
+                                    <option value="ambos">Online e presencial</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="simultaneousAppointments">Agendamentos simultâneos</label>
+                                <input type="number" id="simultaneousAppointments" min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="appointmentInterval">Tempo mínimo entre agendamentos (min)</label>
+                                <input type="number" id="appointmentInterval" min="15" step="15" value="30">
+                            </div>
+                            <div class="input-group">
+                                <label for="cancellationPolicy">Política de cancelamento</label>
+                                <textarea id="cancellationPolicy" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Atendimento WhatsApp -->
+                    <div class="form-group">
+                        <h3>🔹 Atendimento via WhatsApp</h3>
+                        <div class="input-group">
+                            <label for="welcomeMessage">Mensagem de saudação inicial *</label>
+                            <textarea id="welcomeMessage" rows="4" required placeholder="Ex: Olá! Bem-vindo ao [Nome do Negócio]. Como posso ajudá-lo hoje?"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="autoResponse">Informações importantes para resposta automática</label>
+                            <textarea id="autoResponse" rows="4" placeholder="Ex: Endereço, promoções, formas de pagamento, etc."></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="faq">Perguntas frequentes</label>
+                            <textarea id="faq" rows="6" placeholder="Liste as perguntas mais comuns e suas respostas"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Salvar Configurações</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
