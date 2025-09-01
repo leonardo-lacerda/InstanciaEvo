@@ -4,25 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evolution API Manager</title>
+    <meta name="description" content="Gerenciador completo para instâncias da Evolution API">
+    <meta name="author" content="Evolution API Manager">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="config.js" as="script">
+    <link rel="preload" href="utils.js" as="script">
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Carregando Evolution API Manager...</p>
+    </div>
+
     <!-- Página de Login -->
     <div id="loginPage" class="page active">
         <div class="login-container">
             <div class="login-form">
-                <h1>Evolution API Manager</h1>
-                <form id="loginForm">
+                <div class="login-header">
+                    <h1>Evolution API Manager</h1>
+                    <p>Gerencie suas instâncias WhatsApp com facilidade</p>
+                </div>
+                <form id="loginForm" novalidate>
                     <div class="input-group">
                         <label for="username">Usuário</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" name="username" required autocomplete="username" maxlength="50">
+                        <div class="input-error"></div>
                     </div>
                     <div class="input-group">
                         <label for="password">Senha</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" maxlength="100">
+                        <div class="input-error"></div>
                     </div>
-                    <button type="submit">Entrar</button>
+                    <button type="submit" class="login-btn">
+                        <span>Entrar</span>
+                        <div class="btn-loading" style="display: none;"></div>
+                    </button>
                 </form>
+                <div class="login-footer">
+                    <p><small>Evolution API Manager v1.0.0</small></p>
+                </div>
             </div>
         </div>
     </div>
@@ -30,26 +58,124 @@
     <!-- Página de Administração -->
     <div id="adminPage" class="page">
         <header class="admin-header">
-            <h1>Gerenciar Instâncias</h1>
-            <button id="logoutBtn" class="logout-btn">Sair</button>
+            <div class="header-left">
+                <h1>Gerenciar Instâncias</h1>
+                <div class="breadcrumbs" id="breadcrumbs"></div>
+            </div>
+            <div class="header-actions">
+                <button id="refreshInstances" class="action-btn secondary" title="Atualizar Lista (Ctrl+R)">
+                    <span class="btn-icon">🔄</span> Atualizar
+                </button>
+                <button id="exportData" class="action-btn primary" title="Exportar Backup (Ctrl+B)">
+                    <span class="btn-icon">📤</span> Exportar
+                </button>
+                <button id="logoutBtn" class="action-btn danger">
+                    <span class="btn-icon">🚪</span> Sair
+                </button>
+            </div>
         </header>
         
         <div class="admin-container">
+            <!-- Estatísticas -->
+            <div class="stats-section">
+                <div class="stat-card total">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-content">
+                        <h3>Total de Instâncias</h3>
+                        <span id="totalInstances" class="stat-number">0</span>
+                    </div>
+                </div>
+                <div class="stat-card connected">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>Conectadas</h3>
+                        <span id="connectedInstances" class="stat-number">0</span>
+                    </div>
+                </div>
+                <div class="stat-card waiting">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-content">
+                        <h3>Aguardando QR</h3>
+                        <span id="waitingInstances" class="stat-number">0</span>
+                    </div>
+                </div>
+                <div class="stat-card disconnected">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-content">
+                        <h3>Desconectadas</h3>
+                        <span id="disconnectedInstances" class="stat-number">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Criação de Instância -->
             <div class="create-instance-section">
                 <h2>Criar Nova Instância</h2>
-                <form id="createInstanceForm">
-                    <div class="input-group">
-                        <label for="instanceName">Nome da Instância</label>
-                        <input type="text" id="instanceName" name="instanceName" required>
+                <form id="createInstanceForm" novalidate>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="instanceName">Nome da Instância *</label>
+                            <input type="text" id="instanceName" name="instanceName" required maxlength="50" 
+                                   placeholder="Ex: Loja Principal">
+                            <div class="input-error"></div>
+                        </div>
+                        <div class="input-group">
+                            <label for="instanceDescription">Descrição</label>
+                            <input type="text" id="instanceDescription" name="instanceDescription" maxlength="200"
+                                   placeholder="Ex: WhatsApp da Loja Principal - Centro">
+                        </div>
                     </div>
-                    <button type="submit">Criar Instância</button>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="webhookUrl">URL do Webhook (N8N) - Opcional</label>
+                            <input type="url" id="webhookUrl" name="webhookUrl" maxlength="500"
+                                   placeholder="https://n8n.exemplo.com/webhook/...">
+                            <small class="input-help">Configure um webhook para receber eventos automáticos</small>
+                        </div>
+                        <div class="input-group">
+                            <label for="instanceToken">Token Personalizado - Opcional</label>
+                            <input type="text" id="instanceToken" name="instanceToken" maxlength="100"
+                                   placeholder="Token para autenticação">
+                            <small class="input-help">Se não informado, será gerado automaticamente</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>Criar Instância</span>
+                        <div class="btn-loading" style="display: none;"></div>
+                    </button>
                 </form>
             </div>
 
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label for="statusFilter">Filtrar por Status:</label>
+                    <select id="statusFilter">
+                        <option value="all">Todos os Status</option>
+                        <option value="connected">Conectados</option>
+                        <option value="waiting_qr">Aguardando QR</option>
+                        <option value="disconnected">Desconectados</option>
+                        <option value="error">Com Erro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Buscar:</label>
+                    <input type="text" id="searchFilter" placeholder="Nome da instância, ID ou descrição..." maxlength="100">
+                </div>
+                <div class="filter-actions">
+                    <button onclick="document.getElementById('searchFilter').value = ''; InstanceManager.applyFilters()" 
+                            class="clear-filters-btn" title="Limpar filtros">
+                        Limpar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Instâncias -->
             <div class="instances-section">
                 <h2>Instâncias Criadas</h2>
                 <div id="instancesList" class="instances-list">
-                    <!-- Lista de instâncias será preenchida pelo JavaScript -->
+                    <!-- Lista será preenchida pelo JavaScript -->
+                    <div class="loading-placeholder">Carregando instâncias...</div>
                 </div>
             </div>
         </div>
@@ -59,194 +185,461 @@
     <div id="instancePage" class="page">
         <div class="instance-container">
             <div class="instance-header">
-                <h1>Conectar WhatsApp</h1>
-                <p>Escaneie o QR Code abaixo com seu WhatsApp</p>
+                <div class="header-info">
+                    <h1 id="instanceTitle">Conectar WhatsApp</h1>
+                    <p id="instanceSubtitle">Escaneie o QR Code abaixo com seu WhatsApp</p>
+                </div>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator disconnected"></span>
+                    <span class="status-text">Desconectado</span>
+                </div>
+                <button onclick="Navigation.goBack()" class="back-btn" title="Voltar (Alt+B)">
+                    ← Voltar
+                </button>
             </div>
 
             <div class="qr-section">
                 <div id="qrContainer" class="qr-container">
                     <div class="qr-placeholder">QR Code será exibido aqui</div>
                 </div>
-                <button id="refreshQR" class="refresh-btn">Atualizar QR Code</button>
-            </div>
-
-            <div class="url-section">
-                <h3>URL do Webhook (N8N)</h3>
-                <div class="input-group">
-                    <input type="text" id="webhookUrl" placeholder="URL será preenchida automaticamente">
-                    <div class="warning">⚠️ Não altere este campo - será preenchido automaticamente</div>
+                <div class="qr-actions">
+                    <button id="refreshQR" class="action-btn secondary" title="Atualizar QR Code">
+                        🔄 Atualizar QR
+                    </button>
+                    <button id="downloadQR" class="action-btn primary" style="display: none;" title="Baixar QR Code">
+                        💾 Download QR
+                    </button>
+                </div>
+                <div class="qr-instructions">
+                    <h4>Como conectar:</h4>
+                    <ol>
+                        <li>Abra o WhatsApp no seu celular</li>
+                        <li>Toque em "Mais opções" ou nos três pontos</li>
+                        <li>Selecione "Dispositivos conectados"</li>
+                        <li>Toque em "Conectar um dispositivo"</li>
+                        <li>Aponte a câmera para este código QR</li>
+                    </ol>
                 </div>
             </div>
 
-            <div class="form-section">
-                <h2>Configuração do Negócio</h2>
-                <form id="businessForm" class="business-form">
-                    <!-- Informações Básicas -->
-                    <div class="form-group">
-                        <h3>🔹 Informações básicas do negócio</h3>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="businessName">Nome do negócio *</label>
-                                <input type="text" id="businessName" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="businessAddress">Endereço físico</label>
-                                <input type="text" id="businessAddress">
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="businessCity">Cidade/Estado *</label>
-                                <input type="text" id="businessCity" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="businessPhone">Telefone principal *</label>
-                                <input type="tel" id="businessPhone" required>
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="businessEmail">E-mail para contato</label>
-                                <input type="email" id="businessEmail">
-                            </div>
-                            <div class="input-group">
-                                <label for="businessWebsite">Website ou redes sociais</label>
-                                <input type="text" id="businessWebsite">
-                            </div>
-                        </div>
-                    </div>
+            <!-- Sistema de Tabs -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="config" title="Configurações (Alt+1)">
+                        ⚙️ Configuração
+                    </button>
+                    <button class="tab-btn" data-tab="messages" title="Mensagens (Alt+2)">
+                        💬 Mensagens
+                    </button>
+                    <button class="tab-btn" data-tab="analytics" title="Relatórios (Alt+3)">
+                        📊 Relatórios
+                    </button>
+                </div>
 
-                    <!-- Horário de Funcionamento -->
-                    <div class="form-group">
-                        <h3>🔹 Horário de funcionamento</h3>
-                        <div class="schedule-container">
-                            <div class="schedule-day">
-                                <label>Segunda-feira</label>
-                                <input type="time" id="mon_open"> às <input type="time" id="mon_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="mon_break_start"> às <input type="time" id="mon_break_end">
+                <!-- Tab de Configuração -->
+                <div id="configTab" class="tab-content active">
+                    <div class="config-section">
+                        <div class="webhook-section">
+                            <h3>Configurações de Webhook</h3>
+                            <div class="input-group">
+                                <label for="webhookUrlInstance">URL do Webhook (N8N)</label>
+                                <div class="input-with-action">
+                                    <input type="url" id="webhookUrlInstance" maxlength="500"
+                                           placeholder="https://n8n.exemplo.com/webhook/...">
+                                    <button id="testWebhook" class="action-btn primary">Testar</button>
+                                </div>
+                                <small class="input-help">Configure um endpoint para receber eventos automáticos</small>
                             </div>
-                            <div class="schedule-day">
-                                <label>Terça-feira</label>
-                                <input type="time" id="tue_open"> às <input type="time" id="tue_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="tue_break_start"> às <input type="time" id="tue_break_end">
-                            </div>
-                            <div class="schedule-day">
-                                <label>Quarta-feira</label>
-                                <input type="time" id="wed_open"> às <input type="time" id="wed_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="wed_break_start"> às <input type="time" id="wed_break_end">
-                            </div>
-                            <div class="schedule-day">
-                                <label>Quinta-feira</label>
-                                <input type="time" id="thu_open"> às <input type="time" id="thu_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="thu_break_start"> às <input type="time" id="thu_break_end">
-                            </div>
-                            <div class="schedule-day">
-                                <label>Sexta-feira</label>
-                                <input type="time" id="fri_open"> às <input type="time" id="fri_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="fri_break_start"> às <input type="time" id="fri_break_end">
-                            </div>
-                            <div class="schedule-day">
-                                <label>Sábado</label>
-                                <input type="time" id="sat_open"> às <input type="time" id="sat_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="sat_break_start"> às <input type="time" id="sat_break_end">
-                            </div>
-                            <div class="schedule-day">
-                                <label>Domingo</label>
-                                <input type="time" id="sun_open"> às <input type="time" id="sun_close">
-                                <label>Pausa:</label>
-                                <input type="time" id="sun_break_start"> às <input type="time" id="sun_break_end">
+                            <div class="webhook-status" id="webhookStatus">
+                                <span class="status-indicator"></span>
+                                <span class="status-text">Não configurado</span>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Serviços/Produtos -->
-                    <div class="form-group">
-                        <h3>🔹 Serviços ou produtos</h3>
-                        <div id="servicesContainer">
-                            <div class="service-item">
-                                <div class="input-row">
-                                    <div class="input-group">
-                                        <label>Nome do serviço/produto *</label>
-                                        <input type="text" name="serviceName" required>
+                        <div class="form-section">
+                            <h2>Configuração do Negócio</h2>
+                            <form id="businessForm" class="business-form" novalidate>
+                                <!-- Informações Básicas -->
+                                <div class="form-group">
+                                    <h3>🔹 Informações básicas do negócio</h3>
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label for="businessName">Nome do negócio *</label>
+                                            <input type="text" id="businessName" required maxlength="100">
+                                            <div class="input-error"></div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="businessAddress">Endereço físico</label>
+                                            <input type="text" id="businessAddress" maxlength="200">
+                                        </div>
                                     </div>
-                                    <div class="input-group">
-                                        <label>Preço (R$) *</label>
-                                        <input type="number" step="0.01" name="servicePrice" required>
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label for="businessCity">Cidade/Estado *</label>
+                                            <input type="text" id="businessCity" required maxlength="100">
+                                            <div class="input-error"></div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="businessPhone">Telefone principal *</label>
+                                            <input type="tel" id="businessPhone" required maxlength="20"
+                                                   placeholder="(11) 99999-9999">
+                                            <div class="input-error"></div>
+                                        </div>
+                                    </div>
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label for="businessEmail">E-mail para contato</label>
+                                            <input type="email" id="businessEmail" maxlength="100">
+                                            <div class="input-error"></div>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="businessWebsite">Website ou redes sociais</label>
+                                            <input type="url" id="businessWebsite" maxlength="200"
+                                                   placeholder="https://...">
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="input-row">
+
+                                <!-- Horário de Funcionamento -->
+                                <div class="form-group">
+                                    <h3>🔹 Horário de funcionamento</h3>
+                                    <div class="schedule-container">
+                                        <div class="schedule-day">
+                                            <label class="day-label">Segunda-feira</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="mon_open" title="Horário de abertura">
+                                                <span>às</span>
+                                                <input type="time" id="mon_close" title="Horário de fechamento">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="mon_break_start" title="Início da pausa">
+                                                <span>às</span>
+                                                <input type="time" id="mon_break_end" title="Fim da pausa">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Terça-feira</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="tue_open">
+                                                <span>às</span>
+                                                <input type="time" id="tue_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="tue_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="tue_break_end">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Quarta-feira</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="wed_open">
+                                                <span>às</span>
+                                                <input type="time" id="wed_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="wed_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="wed_break_end">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Quinta-feira</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="thu_open">
+                                                <span>às</span>
+                                                <input type="time" id="thu_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="thu_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="thu_break_end">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Sexta-feira</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="fri_open">
+                                                <span>às</span>
+                                                <input type="time" id="fri_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="fri_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="fri_break_end">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Sábado</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="sat_open">
+                                                <span>às</span>
+                                                <input type="time" id="sat_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="sat_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="sat_break_end">
+                                            </div>
+                                        </div>
+                                        <div class="schedule-day">
+                                            <label class="day-label">Domingo</label>
+                                            <div class="time-inputs">
+                                                <input type="time" id="sun_open">
+                                                <span>às</span>
+                                                <input type="time" id="sun_close">
+                                                <span class="break-label">Pausa:</span>
+                                                <input type="time" id="sun_break_start">
+                                                <span>às</span>
+                                                <input type="time" id="sun_break_end">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Serviços/Produtos -->
+                                <div class="form-group">
+                                    <h3>🔹 Serviços ou produtos</h3>
+                                    <div id="servicesContainer">
+                                        <!-- Serviços serão adicionados dinamicamente -->
+                                    </div>
+                                    <button type="button" id="addService" class="add-btn">
+                                        ➕ Adicionar Serviço
+                                    </button>
+                                </div>
+
+                                <!-- Agendamentos -->
+                                <div class="form-group">
+                                    <h3>🔹 Agendamentos</h3>
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label for="appointmentType">Tipo de agendamento</label>
+                                            <select id="appointmentType">
+                                                <option value="online">Online</option>
+                                                <option value="presencial">Apenas presencial</option>
+                                                <option value="ambos">Online e presencial</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="simultaneousAppointments">Agendamentos simultâneos</label>
+                                            <input type="number" id="simultaneousAppointments" min="1" max="10" value="1">
+                                        </div>
+                                    </div>
+                                    <div class="input-row">
+                                        <div class="input-group">
+                                            <label for="appointmentInterval">Tempo mínimo entre agendamentos (min)</label>
+                                            <input type="number" id="appointmentInterval" min="15" step="15" value="30" max="480">
+                                        </div>
+                                        <div class="input-group">
+                                            <label for="cancellationPolicy">Política de cancelamento</label>
+                                            <textarea id="cancellationPolicy" rows="3" maxlength="500"
+                                                     placeholder="Ex: Cancelamentos devem ser feitos com 24h de antecedência..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Atendimento WhatsApp -->
+                                <div class="form-group">
+                                    <h3>🔹 Atendimento via WhatsApp</h3>
                                     <div class="input-group">
-                                        <label>Tempo estimado (minutos)</label>
-                                        <input type="number" name="serviceDuration">
+                                        <label for="welcomeMessage">Mensagem de saudação inicial *</label>
+                                        <textarea id="welcomeMessage" rows="4" required maxlength="1000"
+                                                 placeholder="Ex: Olá! Bem-vindo ao [Nome do Negócio]. Como posso ajudá-lo hoje?"></textarea>
+                                        <div class="input-error"></div>
                                     </div>
                                     <div class="input-group">
-                                        <label>Observações/Regras</label>
-                                        <input type="text" name="serviceNotes">
+                                        <label for="autoResponse">Informações importantes para resposta automática</label>
+                                        <textarea id="autoResponse" rows="4" maxlength="1000"
+                                                 placeholder="Ex: Endereço, promoções, formas de pagamento, etc."></textarea>
                                     </div>
+                                    <div class="input-group">
+                                        <label for="faq">Perguntas frequentes</label>
+                                        <textarea id="faq" rows="6" maxlength="2000"
+                                                 placeholder="Liste as perguntas mais comuns e suas respostas"></textarea>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="submit-btn">
+                                    <span>Salvar Configurações</span>
+                                    <div class="btn-loading" style="display: none;"></div>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab de Mensagens -->
+                <div id="messagesTab" class="tab-content">
+                    <div class="messages-section">
+                        <h3>Enviar Mensagem de Teste</h3>
+                        <div class="message-form">
+                            <div class="input-group">
+                                <label for="testNumber">Número de destino (com DDI)</label>
+                                <input type="tel" id="testNumber" placeholder="5511999999999" maxlength="20">
+                                <small class="input-help">Formato: DDI + DDD + Número (sem espaços ou símbolos)</small>
+                            </div>
+                            <div class="input-group">
+                                <label for="testMessage">Mensagem</label>
+                                <textarea id="testMessage" rows="4" maxlength="1000"
+                                         placeholder="Digite sua mensagem de teste... (Enter para enviar)"></textarea>
+                                <div class="textarea-counter">
+                                    <span id="messageCounter">0/1000</span>
+                                </div>
+                            </div>
+                            <button id="sendTestMessage" class="send-btn">
+                                <span>📤 Enviar Mensagem</span>
+                                <div class="btn-loading" style="display: none;"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="message-history">
+                        <div class="history-header">
+                            <h3>Histórico de Mensagens</h3>
+                            <div class="history-actions">
+                                <button onclick="MessageManager.loadInstanceMessages(appState.currentInstance.id)" 
+                                        class="action-btn secondary small" title="Atualizar mensagens">
+                                    🔄 Atualizar
+                                </button>
+                                <button onclick="MessageManager.clearMessageHistory(appState.currentInstance.id)" 
+                                        class="action-btn danger small" title="Limpar histórico">
+                                    🗑️ Limpar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="messagesList" class="messages-list">
+                            <div class="loading-placeholder">Carregando mensagens...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab de Relatórios -->
+                <div id="analyticsTab" class="tab-content">
+                    <div class="analytics-section">
+                        <div class="analytics-header">
+                            <h3>Relatórios da Instância</h3>
+                            <button onclick="Analytics.updateInstanceAnalytics()" class="action-btn secondary small">
+                                🔄 Atualizar (F5)
+                            </button>
+                        </div>
+                        
+                        <div class="analytics-cards">
+                            <div class="analytics-card">
+                                <div class="card-icon">📤</div>
+                                <div class="card-content">
+                                    <h4>Mensagens Enviadas (24h)</h4>
+                                    <span id="messagesSent24h" class="card-number">0</span>
+                                </div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="card-icon">📥</div>
+                                <div class="card-content">
+                                    <h4>Mensagens Recebidas (24h)</h4>
+                                    <span id="messagesReceived24h" class="card-number">0</span>
+                                </div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="card-icon">⏱️</div>
+                                <div class="card-content">
+                                    <h4>Tempo Online</h4>
+                                    <span id="uptime" class="card-number">0h 0m</span>
+                                </div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="card-icon">🕒</div>
+                                <div class="card-content">
+                                    <h4>Última Atividade</h4>
+                                    <span id="lastActivity" class="card-number">Nunca</span>
+                                </div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="card-icon">💬</div>
+                                <div class="card-content">
+                                    <h4>Total de Mensagens</h4>
+                                    <span id="totalMessagesAnalytics" class="card-number">0</span>
+                                </div>
+                            </div>
+                            <div class="analytics-card">
+                                <div class="card-icon">📊</div>
+                                <div class="card-content">
+                                    <h4>Taxa de Resposta</h4>
+                                    <span id="responseRate" class="card-number">0%</span>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" id="addService" class="add-btn">+ Adicionar Serviço</button>
-                    </div>
-
-                    <!-- Agendamentos -->
-                    <div class="form-group">
-                        <h3>🔹 Agendamentos</h3>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="appointmentType">Tipo de agendamento</label>
-                                <select id="appointmentType">
-                                    <option value="online">Online</option>
-                                    <option value="presencial">Apenas presencial</option>
-                                    <option value="ambos">Online e presencial</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label for="simultaneousAppointments">Agendamentos simultâneos</label>
-                                <input type="number" id="simultaneousAppointments" min="1" value="1">
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label for="appointmentInterval">Tempo mínimo entre agendamentos (min)</label>
-                                <input type="number" id="appointmentInterval" min="15" step="15" value="30">
-                            </div>
-                            <div class="input-group">
-                                <label for="cancellationPolicy">Política de cancelamento</label>
-                                <textarea id="cancellationPolicy" rows="3"></textarea>
+                        
+                        <div class="export-section">
+                            <h4>Exportar Dados</h4>
+                            <div class="export-buttons">
+                                <button id="exportMessages" class="action-btn primary">
+                                    📄 Exportar Mensagens
+                                </button>
+                                <button id="exportConfig" class="action-btn secondary">
+                                    ⚙️ Exportar Configurações
+                                </button>
+                                <button id="exportAll" class="action-btn success">
+                                    📦 Exportar Tudo
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Atendimento WhatsApp -->
-                    <div class="form-group">
-                        <h3>🔹 Atendimento via WhatsApp</h3>
-                        <div class="input-group">
-                            <label for="welcomeMessage">Mensagem de saudação inicial *</label>
-                            <textarea id="welcomeMessage" rows="4" required placeholder="Ex: Olá! Bem-vindo ao [Nome do Negócio]. Como posso ajudá-lo hoje?"></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="autoResponse">Informações importantes para resposta automática</label>
-                            <textarea id="autoResponse" rows="4" placeholder="Ex: Endereço, promoções, formas de pagamento, etc."></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="faq">Perguntas frequentes</label>
-                            <textarea id="faq" rows="6" placeholder="Liste as perguntas mais comuns e suas respostas"></textarea>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">Salvar Configurações</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal para Import/Export -->
+    <div id="importExportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Importar/Exportar Dados</h3>
+                <span class="modal-close" title="Fechar (Esc)">&times;</span>
+            </div>
+            <div class="modal-body">
+                <textarea id="modalTextarea" rows="15" 
+                         placeholder="Cole os dados aqui para importar ou copie os dados exportados..."></textarea>
+                <div class="modal-help">
+                    <p><strong>Dica:</strong> Você pode importar backups completos, configurações de instância ou histórico de mensagens em formato JSON.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCancel" class="cancel-btn">Cancelar</button>
+                <button id="modalConfirm" class="confirm-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - ORDEM IMPORTANTE -->
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+    <script src="state.js"></script>
+    <script src="evolution-api.js"></script>
+    <script src="auth.js"></script>
+    <script src="navigation.js"></script>
+    <script src="instance-manager.js"></script>
+    <script src="instance-page.js"></script>
+    <script src="message-manager.js"></script>
+    <script src="analytics.js"></script>
+    <script src="business-config.js"></script>
+    <script src="modal.js"></script>
     <script src="script.js"></script>
+
+    <!-- Service Worker para PWA (opcional) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registrado'))
+                    .catch(error => console.log('Erro no SW:', error));
+            });
+        }
+    </script>
+
+    <!-- Remove loading overlay -->
+    <script>
+        window.addEventListener('load', () => {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 300);
+                }, 500);
+            }
+        });
+    </script>
 </body>
 </html>
