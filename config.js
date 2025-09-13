@@ -2,7 +2,7 @@
 const CONFIG = {
     ADMIN_USERNAME: 'admin',
     ADMIN_PASSWORD: 'admin123',
-    EVOLUTION_API_URL: 'https://promptaaievo.discloud.app/manager',
+    EVOLUTION_API_URL: 'https://promptaaievo.discloud.app',
     EVOLUTION_API_KEY: 'X7mR4qP2tH9bW6zC',
     
     // Configurações de backup

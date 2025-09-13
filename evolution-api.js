@@ -1,4 +1,11 @@
 // evolution-api.js - Cliente para integração com a Evolution API
+
+// Configuração padrão - defina suas credenciais aqui
+const CONFIG = window.CONFIG || {
+    EVOLUTION_API_URL: 'https://promptaaievo.discloud.app',
+    EVOLUTION_API_KEY: 'X7mR4qP2tH9bW6zC' // Substitua pela sua chave real
+};
+
 class EvolutionAPI {
     constructor(baseUrl, apiKey) {
         this.baseUrl = baseUrl;
@@ -8,7 +15,7 @@ class EvolutionAPI {
             'apikey': this.apiKey
         };
     }
-    
+
     // Método base para fazer requisições
     async makeRequest(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
@@ -23,32 +30,44 @@ class EvolutionAPI {
                 10000 // 10 segundos de timeout
             );
             
+            // Verificar se a resposta é JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Resposta não é JSON. Content-Type: ${contentType}. Recebido: ${text.substring(0, 100)}...`);
+            }
+            
             const data = await response.json();
             
             if (!response.ok) {
                 throw new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             return data;
         } catch (error) {
             console.error(`Erro na requisição para ${endpoint}:`, error);
             throw error;
         }
     }
-    
+
     // Criar nova instância
     async createInstance(instanceName) {
         try {
+            // Validação do nome da instância
+            if (!instanceName || typeof instanceName !== 'string' || instanceName.trim() === '') {
+                throw new Error('Nome da instância é obrigatório!');
+            }
+
             Utils.showToast('Criando instância na Evolution API...', 'info');
-            
+
             const data = await this.makeRequest('/instance/create', {
                 method: 'POST',
                 body: JSON.stringify({
-                    instanceName: instanceName,
+                    instanceName: instanceName.trim(),
                     integration: 'WHATSAPP-BAILEYS'
                 })
             });
-            
+
             Utils.showToast('Instância criada com sucesso na Evolution API!', 'success');
             return data;
         } catch (error) {
@@ -56,28 +75,28 @@ class EvolutionAPI {
             throw error;
         }
     }
-    
+
     // Obter QR Code para conexão
     async getQRCode(instanceName) {
         try {
             const data = await this.makeRequest(`/instance/connect/${instanceName}`, {
                 method: 'GET'
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao obter QR Code:', error);
             throw new Error(`Falha ao obter QR Code: ${error.message}`);
         }
     }
-    
+
     // Deletar instância
     async deleteInstance(instanceName) {
         try {
             const data = await this.makeRequest(`/instance/delete/${instanceName}`, {
                 method: 'DELETE'
             });
-            
+
             Utils.showToast('Instância removida da Evolution API', 'info');
             return data;
         } catch (error) {
@@ -85,7 +104,7 @@ class EvolutionAPI {
             throw error;
         }
     }
-    
+
     // Configurar webhook
     async setWebhook(instanceName, webhookUrl) {
         try {
@@ -104,7 +123,7 @@ class EvolutionAPI {
                     ]
                 })
             });
-            
+
             Utils.showToast('Webhook configurado com sucesso!', 'success');
             return data;
         } catch (error) {
@@ -112,7 +131,7 @@ class EvolutionAPI {
             throw error;
         }
     }
-    
+
     // Enviar mensagem de texto
     async sendTextMessage(instanceName, number, message) {
         try {
@@ -123,14 +142,14 @@ class EvolutionAPI {
                     text: message
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error);
             throw new Error(`Falha ao enviar mensagem: ${error.message}`);
         }
     }
-    
+
     // Enviar mensagem com mídia
     async sendMediaMessage(instanceName, number, mediaData) {
         try {
@@ -141,54 +160,54 @@ class EvolutionAPI {
                     ...mediaData
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao enviar mídia:', error);
             throw new Error(`Falha ao enviar mídia: ${error.message}`);
         }
     }
-    
+
     // Obter status de uma instância específica
     async getInstanceStatus(instanceName) {
         try {
             const data = await this.makeRequest('/instance/fetchInstances', {
                 method: 'GET'
             });
-            
+
             // Procurar pela instância específica
-            const instance = data.find(inst => 
+            const instance = data.find(inst =>
                 inst.instance && inst.instance.instanceName === instanceName
             );
-            
+
             return instance || null;
         } catch (error) {
             console.error('Erro ao obter status da instância:', error);
             throw error;
         }
     }
-    
+
     // Obter todas as instâncias
     async getAllInstances() {
         try {
             const data = await this.makeRequest('/instance/fetchInstances', {
                 method: 'GET'
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao obter instâncias:', error);
             throw error;
         }
     }
-    
+
     // Reiniciar instância
     async restartInstance(instanceName) {
         try {
             const data = await this.makeRequest(`/instance/restart/${instanceName}`, {
                 method: 'PUT'
             });
-            
+
             Utils.showToast('Instância reiniciada!', 'info');
             return data;
         } catch (error) {
@@ -196,14 +215,14 @@ class EvolutionAPI {
             throw error;
         }
     }
-    
+
     // Desconectar instância
     async logoutInstance(instanceName) {
         try {
             const data = await this.makeRequest(`/instance/logout/${instanceName}`, {
                 method: 'DELETE'
             });
-            
+
             Utils.showToast('Instância desconectada!', 'info');
             return data;
         } catch (error) {
@@ -211,21 +230,21 @@ class EvolutionAPI {
             throw error;
         }
     }
-    
+
     // Obter informações do perfil
     async getProfileInfo(instanceName) {
         try {
             const data = await this.makeRequest(`/chat/whatsappProfile/${instanceName}`, {
                 method: 'GET'
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao obter perfil:', error);
             throw error;
         }
     }
-    
+
     // Verificar se número existe no WhatsApp
     async checkNumberExists(instanceName, numbers) {
         try {
@@ -235,28 +254,28 @@ class EvolutionAPI {
                     numbers: Array.isArray(numbers) ? numbers : [numbers]
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao verificar números:', error);
             throw error;
         }
     }
-    
+
     // Obter conversas
     async getChats(instanceName) {
         try {
             const data = await this.makeRequest(`/chat/findChats/${instanceName}`, {
                 method: 'GET'
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao obter conversas:', error);
             throw error;
         }
     }
-    
+
     // Obter mensagens de uma conversa
     async getChatMessages(instanceName, remoteJid, limit = 50) {
         try {
@@ -269,14 +288,14 @@ class EvolutionAPI {
                     limit: limit
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao obter mensagens:', error);
             throw error;
         }
     }
-    
+
     // Marcar mensagem como lida
     async markMessageAsRead(instanceName, remoteJid) {
         try {
@@ -286,14 +305,14 @@ class EvolutionAPI {
                     remoteJid: remoteJid
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao marcar como lida:', error);
             throw error;
         }
     }
-    
+
     // Atualizar presença (online/offline/typing)
     async updatePresence(instanceName, remoteJid, presence) {
         try {
@@ -304,21 +323,21 @@ class EvolutionAPI {
                     presence: presence // 'available', 'unavailable', 'composing', 'recording', 'paused'
                 })
             });
-            
+
             return data;
         } catch (error) {
             console.error('Erro ao atualizar presença:', error);
             throw error;
         }
     }
-    
+
     // Testar conectividade da API
     async testConnection() {
         try {
             const data = await this.makeRequest('/instance/fetchInstances', {
                 method: 'GET'
             });
-            
+
             return { status: 'connected', instances: data.length };
         } catch (error) {
             console.error('Erro ao testar conexão:', error);
