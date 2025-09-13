@@ -1109,3 +1109,312 @@ button[type="submit"] {
 .text-info {
     color: #3498db;
 }
+
+/* Estilos para melhor tratamento de erros */
+
+.instance-item.error-state {
+    border-left: 4px solid #e74c3c;
+    background: linear-gradient(to right, #fdf2f2, #ffffff);
+}
+
+.error-info {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #c33;
+}
+
+.error-info strong {
+    color: #a00;
+}
+
+.error-info small {
+    opacity: 0.8;
+    font-size: 0.8em;
+}
+
+/* Status badges melhorados */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Cores específicas para cada status */
+.status-badge[style*="rgb(52, 152, 219)"] {
+    background-color: #3498db !important;
+    color: white;
+}
+
+.status-badge[style*="rgb(46, 204, 113)"] {
+    background-color: #2ecc71 !important;
+    color: white;
+}
+
+.status-badge[style*="rgb(241, 196, 15)"] {
+    background-color: #f1c40f !important;
+    color: #333;
+}
+
+.status-badge[style*="rgb(231, 76, 60)"] {
+    background-color: #e74c3c !important;
+    color: white;
+}
+
+.status-badge[style*="rgb(149, 165, 166)"] {
+    background-color: #95a5a6 !important;
+    color: white;
+}
+
+/* Botão de retry */
+.action-btn.warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.action-btn.warning:hover {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(230, 126, 34, 0.3);
+}
+
+/* Toast messages melhorados */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+    max-width: 400px;
+    word-wrap: break-word;
+}
+
+.toast.success {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    border-left: 4px solid #1e8449;
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border-left: 4px solid #a93226;
+}
+
+.toast.warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    border-left: 4px solid #d68910;
+}
+
+.toast.info {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-left: 4px solid #1f618d;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading states */
+.instance-item.loading {
+    opacity: 0.7;
+    position: relative;
+}
+
+.instance-item.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Connection status indicator */
+.connection-status {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.connection-status.online {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.connection-status.offline {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.connection-status.checking {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+}
+
+/* Improved form validation */
+.form-group.error input,
+.form-group.error textarea {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+}
+
+.form-group.error .error-message {
+    color: #e74c3c;
+    font-size: 0.8em;
+    margin-top: 4px;
+    display: block;
+}
+
+.form-group.success input,
+.form-group.success textarea {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+}
+
+/* Better empty states */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.empty-state p {
+    margin: 8px 0;
+}
+
+.empty-state p:first-child {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #34495e;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .toast {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .connection-status {
+        left: 10px;
+        right: 10px;
+        transform: none;
+        text-align: center;
+    }
+    
+    .instance-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Debug information */
+.debug-info {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 12px;
+    margin-top: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8em;
+    color: #495057;
+}
+
+.debug-info h4 {
+    margin: 0 0 8px 0;
+    color: #343a40;
+    font-family: inherit;
+}
+
+.debug-info pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* API status indicator */
+.api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.api-status.connected {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.api-status.disconnected {
+    background: rgba(231, 76, 60, 0.1);
+    color: #c0392b;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.api-status.checking {
+    background: rgba(243, 156, 18, 0.1);
+    color: #e67e22;
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.api-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Retry button animation */
+.action-btn.warning.retrying {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
